@@ -1,12 +1,25 @@
 public class User {
-    String username;
-    String email;
+    private String username;
+    private String email;
+    private String password;
 
-    User(String username, String email){
+    User(String username, String email, String password){
         this.username = username ;
         this.email = email;
+        this.password = password;
     }
-    void login(){
-        System.out.println("User " + username + " login");
+    String getUsername(){
+        return this.username;
+    }
+    String getEmail(){
+        return this.email;
+    }
+    public void setEmail(String email){
+        if(email.contains("@")){
+            this.email = email;
+        }
+        else{
+            System.out.println("Invalid email");
+        }
     }
 }

@@ -1,11 +1,10 @@
 public class Parcel {
-
-    int trackingId;
-    String sender;
-    String receiver;
-    String status;
-    double weight;
-    double fee;
+    private int trackingId;
+    private String sender;
+    private String receiver;
+    private String status;
+    private double weight;
+    private double fee;
 
     Parcel(int trackingId, String sender, String receiver, String status, double weight){
         this.trackingId = trackingId;
@@ -45,6 +44,24 @@ public class Parcel {
         }
         else{
             return 100;
+        }
+    }
+
+    void setWeight(double weight){
+        if(weight < 0){
+            System.out.println("Invalid");
+        }
+        else{
+            this.weight = weight;
+        }
+    }
+
+    void setStatus(String status){
+        if(status.isEmpty()){
+            System.out.println("Status cannot be empty");
+        }
+        else{
+            this.status = status;
         }
     }
 }
