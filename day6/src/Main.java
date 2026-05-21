@@ -1,5 +1,6 @@
 import java.io.*;
 import java.util.ArrayList;
+import java.util.stream.Collectors;
 
 //TIP To <b>Run</b> code, press <shortcut actionId="Run"/> or
 // click the <icon src="AllIcons.Actions.Execute"/> icon in the gutter.
@@ -40,8 +41,7 @@ public class Main {
     }
 
     public static void saveParcels(
-            ArrayList<Parcels> parcels,
-            String filePath){
+            ArrayList<Parcels> parcels, String filePath){
 
         try(FileWriter writer =
                     new FileWriter(filePath)){
@@ -68,6 +68,15 @@ public class Main {
         String filePath = "day6/test.txt";
         ArrayList<Parcels> parcelsArrayList = loadParcel(filePath);
         for(Parcels p : parcelsArrayList){
+            p.displayInfo();
+        }
+
+        ArrayList<Parcels> shippingParcels = parcelsArrayList.stream()
+                .filter(p -> p.getStatus().equals("Shipping"))
+                .collect(Collectors.toCollection(ArrayList::new));
+
+        System.out.println("Shipping parcels:");
+        for(Parcels p : shippingParcels){
             p.displayInfo();
         }
 
