@@ -1,6 +1,3 @@
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
 import java.util.Scanner;
 
 public class Main {
@@ -19,8 +16,8 @@ public class Main {
     public static void main(String[] args) {
         String filepath = "mini-project1/src/test.txt";
         Scanner scanner = new Scanner(System.in);
-        List<Parcel> parcels = new ArrayList<>();
-        ParcelManager.loadParcels(parcels, filepath);
+        ParcelManager manager = new ParcelManager();
+        manager.loadParcels(filepath);
 
         menuLoop:
         while(true) {
@@ -41,9 +38,7 @@ public class Main {
 
             switch (choice) {
                 case "2":
-                    for (Parcel p : parcels) {
-                        p.displayInfo();
-                    }
+                    manager.showAllParcels();
                     break;
 
                 case "1":
@@ -52,19 +47,19 @@ public class Main {
                         break;
                     }
 
-                    Parcel existParcel = ParcelManager.findParcelById(parcels, id);
+                    Parcel existParcel = manager.findParcelById(id);
 
                     if (existParcel != null) {
                         System.out.println("Id already exist");
                         break;
                     }
 
-                    Parcel newParcel = ParcelManager.createParcel(scanner, id);
+                    Parcel newParcel = manager.createParcel(scanner, id);
                     if(newParcel == null){
                         break;
                     }
 
-                    parcels.add(newParcel);
+                    manager.addParcel(newParcel);
                     System.out.println("Parcel added");
                     break;
 
@@ -74,7 +69,7 @@ public class Main {
                         break;
                     }
 
-                    Parcel foundParcel = ParcelManager.findParcelById(parcels, searchId);
+                    Parcel foundParcel = manager.findParcelById(searchId);
 
                     if (foundParcel != null) {
                         foundParcel.displayInfo();
@@ -90,7 +85,7 @@ public class Main {
                         break;
                     }
 
-                    Parcel foundParcel = ParcelManager.findParcelById(parcels, searchId);
+                    Parcel foundParcel = manager.findParcelById(searchId);
 
                     if(foundParcel != null){
                         System.out.print("Enter the new status: ");
@@ -115,10 +110,10 @@ public class Main {
                         break;
                     }
 
-                    Parcel foundParcel = ParcelManager.findParcelById(parcels, searchId);
+                    Parcel foundParcel = manager.findParcelById(searchId);
 
                     if(foundParcel != null){
-                        parcels.remove(foundParcel);
+                        manager.removeParcel(foundParcel);
                         System.out.println("Parcel deleted");
                     }
                     else {
@@ -128,42 +123,28 @@ public class Main {
                 }
 
                 case "6": {
-                    long pendingCount = parcels.stream().filter(
-                            p -> p.getStatus() == ParcelStatus.PENDING
-                    ).count();
+                    long pendingCount = manager.countPendingParcels();
                     System.out.println("The number of parcels is pending: " + pendingCount);
                     break;
                 }
 
                 case "7": {
-                    parcels.sort(
-                            (a,b) ->
-                                    Integer.compare(
-                                            b.getId(),
-                                            a.getId()
-                                    )
-                    );
-                    parcels.forEach(
+                    manager.sortByIdDescending();
+                    manager.getParcels().forEach(
                             p -> p.displayInfo()
                     );
                     break;
                 }
 
                 case "8": {
-                    HashSet<String> uniqueSenders = new HashSet<>();
-
-                    for(Parcel p : parcels){
-                        uniqueSenders.add(p.getSender());
-                    }
-
-                    for(String sender : uniqueSenders){
+                    for(String sender : manager.getUniqueSenders()){
                         System.out.println(sender);
                     }
                     break;
                 }
 
                 case "9": {
-                    ParcelManager.saveParcels(parcels, filepath);
+                    manager.saveParcels(filepath);
                     break;
                 }
 
@@ -173,14 +154,14 @@ public class Main {
                         break;
                     }
 
-                    Parcel foundParcel = ParcelManager.findParcelById(parcels, searchId);
+                    Parcel foundParcel = manager.findParcelById(searchId);
 
                     if(foundParcel == null){
                         System.out.println("Parcel not found");
                         break;
                     }
 
-                    double fee = ParcelManager.calculateShippingFee(foundParcel);
+                    double fee = manager.calculateShippingFee(foundParcel);
 
                     if(fee == -1){
                         System.out.println("Invalid shipping type");
@@ -192,7 +173,7 @@ public class Main {
                 }
 
                 case "0": {
-                    ParcelManager.saveParcels(parcels, filepath);
+                    manager.saveParcels(filepath);
                     break menuLoop;
                 }
 

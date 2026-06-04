@@ -2,17 +2,35 @@ import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Scanner;
 
 public class ParcelManager {
     private List<Parcel> parcels;
 
+    public ParcelManager(){
+        this.parcels = new ArrayList<>();
+    }
+
+    public List<Parcel> getParcels(){
+        return this.parcels;
+    }
+
+    public void addParcel(Parcel parcel){
+        this.parcels.add(parcel);
+    }
+
+    public void removeParcel(Parcel parcel){
+        this.parcels.remove(parcel);
+    }
+
     public static boolean isValidStatus(String status){
         return ParcelStatus.fromInput(status) != null;
     }
 
-    public static Parcel createParcel(Scanner scanner, int id){
+    public Parcel createParcel(Scanner scanner, int id){
         System.out.print("Enter sender: ");
         String sender = scanner.nextLine();
 
@@ -36,8 +54,8 @@ public class ParcelManager {
         return new Parcel(id, sender, receiver, weight, status, shippingType);
     }
 
-    public static Parcel findParcelById(List<Parcel> parcels, int id){
-        for(Parcel p : parcels){
+    public Parcel findParcelById(int id){
+        for(Parcel p : this.parcels){
             if(p.getId() == id){
                 return p;
             }
@@ -45,7 +63,7 @@ public class ParcelManager {
         return null;
     }
 
-    public static ShippingMethod getShippingMethod(String shippingType){
+    public ShippingMethod getShippingMethod(String shippingType){
         if(shippingType.equalsIgnoreCase("Standard")){
             return new StandardShipping();
         }
@@ -56,7 +74,7 @@ public class ParcelManager {
         return null;
     }
 
-    public static double calculateShippingFee(Parcel parcel){
+    public double calculateShippingFee(Parcel parcel){
         ShippingMethod shippingMethod = getShippingMethod(parcel.getShippingType());
 
         if(shippingMethod == null){
@@ -66,7 +84,32 @@ public class ParcelManager {
         return shippingMethod.calculateFee(parcel.getWeight());
     }
 
-    public static void loadParcels(List<Parcel> parcels, String filePath){
+    public long countPendingParcels(){
+        return this.parcels.stream().filter(
+                p -> p.getStatus() == ParcelStatus.PENDING
+        ).count();
+    }
+
+    public void sortByIdDescending(){
+        this.parcels.sort(
+                (a,b) -> Integer.compare(
+                        b.getId(),
+                        a.getId()
+                )
+        );
+    }
+
+    public HashSet<String> getUniqueSenders(){
+        HashSet<String> uniqueSenders = new HashSet<>();
+
+        for(Parcel p : this.parcels){
+            uniqueSenders.add(p.getSender());
+        }
+
+        return uniqueSenders;
+    }
+
+    public void loadParcels(String filePath){
         try(BufferedReader reader = new BufferedReader(new FileReader(filePath))){
             String line;
 
@@ -89,7 +132,7 @@ public class ParcelManager {
                         continue;
                     }
 
-                    parcels.add(new Parcel(id, sender, receiver, weight, status, shippingType));
+                    this.parcels.add(new Parcel(id, sender, receiver, weight, status, shippingType));
                 }
                 catch(NumberFormatException e){
                     System.out.println("Invalid parcel data skipped");
@@ -101,13 +144,12 @@ public class ParcelManager {
         }
     }
 
-    public static void saveParcels(
-            List<Parcel> parcels, String filePath){
+    public void saveParcels(String filePath){
 
         try(FileWriter writer =
                     new FileWriter(filePath)){
 
-            for(Parcel p : parcels){
+            for(Parcel p : this.parcels){
 
                 writer.write(
                         p.getId() + "," +
@@ -124,6 +166,12 @@ public class ParcelManager {
         }
         catch(IOException e){
             System.out.println("Error saving file");
+        }
+    }
+
+    public void showAllParcels(){
+        for(Parcel p : this.parcels){
+            p.displayInfo();
         }
     }
 }
