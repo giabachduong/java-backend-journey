@@ -56,8 +56,14 @@ public class Parcel {
         return this.weight;
     }
     public void setWeight(double weight){
+        if(weight <= 0){
+            throw new IllegalArgumentException(
+                    "Weight must be positive"
+            );
+        }
         this.weight = weight;
     }
+
     //Getter setter for shippingType
     public String getShippingType(){
         return this.shippingType;
@@ -65,6 +71,7 @@ public class Parcel {
     public void setShippingType(String shippingType){
         this.shippingType = shippingType;
     }
+
     //displayInfo
     public void displayInfo(){
         System.out.println("Parcel: " + id + " "

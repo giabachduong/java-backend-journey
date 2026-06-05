@@ -30,6 +30,28 @@ public class ParcelManager {
         return ParcelStatus.fromInput(status) != null;
     }
 
+    private void validateWeight(double weight) throws InvalidParcelException{
+        if(weight <= 0){
+            throw new InvalidParcelException("Weight must be positive");
+        }
+    }
+
+    public void validateParcel(Parcel p) throws InvalidParcelException{
+        if(p.getSender().isBlank()){
+            throw new InvalidParcelException("Sender cannot be empty");
+        }
+
+        if(p.getReceiver().isBlank()){
+            throw new InvalidParcelException("Receiver cannot be empty");
+        }
+
+        validateWeight(p.getWeight());
+
+        if(getShippingMethod(p.getShippingType()) == null){
+            throw new InvalidParcelException("Invalid shipping type");
+        }
+    }
+
     public Parcel createParcel(Scanner scanner, int id){
         System.out.print("Enter sender: ");
         String sender = scanner.nextLine();
@@ -51,7 +73,17 @@ public class ParcelManager {
         System.out.print("Enter shipping type: ");
         String shippingType = scanner.nextLine();
 
-        return new Parcel(id, sender, receiver, weight, status, shippingType);
+        Parcel parcel = new Parcel(id, sender, receiver, weight, status, shippingType);
+
+        try{
+            validateParcel(parcel);
+        }
+        catch(InvalidParcelException e){
+            System.out.println(e.getMessage());
+            return null;
+        }
+
+        return parcel;
     }
 
     public Parcel findParcelById(int id){
