@@ -1,17 +1,19 @@
+import java.util.Optional;
+import java.util.OptionalInt;
 import java.util.Scanner;
 
 public class Main {
-    public static int askForId(Scanner scanner){
+    public static OptionalInt askForId(Scanner scanner){
         System.out.print("Enter ID: ");
         if(!scanner.hasNextInt()){
             System.out.println("Invalid ID");
             scanner.nextLine();
-            return -1;
+            return OptionalInt.empty();
         }
 
         int id = scanner.nextInt();
         scanner.nextLine();
-        return id;
+        return OptionalInt.of(id);
     }
     public static void main(String[] args) {
         String filepath = "mini-project1/src/test.txt";
@@ -31,6 +33,11 @@ public class Main {
             System.out.println("8 Unique sender");
             System.out.println("9 Save");
             System.out.println("10 Calculate shipping fee");
+            System.out.println("11 Sender names");
+            System.out.println("12 Any shipping parcel ? ");
+            System.out.println("13 Are all parcels delivered ? ");
+            System.out.println("14 Sort by ID");
+            System.out.println("15 Sort by weight");
             System.out.println("0 Exit");
 
             System.out.print("Enter choice: ");
@@ -42,37 +49,39 @@ public class Main {
                     break;
 
                 case "1":
-                    int id = askForId(scanner);
-                    if(id == -1){
+                    OptionalInt idInput = askForId(scanner);
+                    if(idInput.isEmpty()){
                         break;
                     }
+                    int id = idInput.getAsInt();
 
-                    Parcel existParcel = manager.findParcelById(id);
+                    Optional<Parcel> existParcel = manager.findParcelById(id);
 
-                    if (existParcel != null) {
+                    if (existParcel.isPresent()) {
                         System.out.println("Id already exist");
                         break;
                     }
 
-                    Parcel newParcel = manager.createParcel(scanner, id);
-                    if(newParcel == null){
+                    Optional<Parcel> newParcel = manager.createParcel(scanner, id);
+                    if(newParcel.isEmpty()){
                         break;
                     }
 
-                    manager.addParcel(newParcel);
+                    manager.addParcel(newParcel.get());
                     System.out.println("Parcel added");
                     break;
 
                 case "3": {
-                    int searchId = askForId(scanner);
-                    if(searchId == -1){
+                    OptionalInt searchIdInput = askForId(scanner);
+                    if(searchIdInput.isEmpty()){
                         break;
                     }
+                    int searchId = searchIdInput.getAsInt();
 
-                    Parcel foundParcel = manager.findParcelById(searchId);
+                    Optional<Parcel> foundParcel = manager.findParcelById(searchId);
 
-                    if (foundParcel != null) {
-                        foundParcel.displayInfo();
+                    if (foundParcel.isPresent()) {
+                        foundParcel.get().displayInfo();
                     } else {
                         System.out.println("Parcel not found");
                     }
@@ -80,14 +89,15 @@ public class Main {
                 }
 
                 case "4": {
-                    int searchId = askForId(scanner);
-                    if(searchId == -1){
+                    OptionalInt searchIdInput = askForId(scanner);
+                    if(searchIdInput.isEmpty()){
                         break;
                     }
+                    int searchId = searchIdInput.getAsInt();
 
-                    Parcel foundParcel = manager.findParcelById(searchId);
+                    Optional<Parcel> foundParcel = manager.findParcelById(searchId);
 
-                    if(foundParcel != null){
+                    if(foundParcel.isPresent()){
                         System.out.print("Enter the new status: ");
                         ParcelStatus newStatus = ParcelStatus.fromInput(scanner.nextLine());
                         if(newStatus == null){
@@ -95,7 +105,7 @@ public class Main {
                             break;
                         }
 
-                        foundParcel.setStatus(newStatus);
+                        foundParcel.get().setStatus(newStatus);
                         System.out.println("Parcel updated");
                     }
                     else {
@@ -105,15 +115,16 @@ public class Main {
                 }
 
                 case "5": {
-                    int searchId = askForId(scanner);
-                    if(searchId == -1){
+                    OptionalInt searchIdInput = askForId(scanner);
+                    if(searchIdInput.isEmpty()){
                         break;
                     }
+                    int searchId = searchIdInput.getAsInt();
 
-                    Parcel foundParcel = manager.findParcelById(searchId);
+                    Optional<Parcel> foundParcel = manager.findParcelById(searchId);
 
-                    if(foundParcel != null){
-                        manager.removeParcel(foundParcel);
+                    if(foundParcel.isPresent()){
+                        manager.removeParcel(foundParcel.get());
                         System.out.println("Parcel deleted");
                     }
                     else {
@@ -149,26 +160,66 @@ public class Main {
                 }
 
                 case "10": {
-                    int searchId = askForId(scanner);
-                    if(searchId == -1){
+                    OptionalInt searchIdInput = askForId(scanner);
+                    if(searchIdInput.isEmpty()){
                         break;
                     }
+                    int searchId = searchIdInput.getAsInt();
 
-                    Parcel foundParcel = manager.findParcelById(searchId);
+                    Optional<Parcel> foundParcel = manager.findParcelById(searchId);
 
-                    if(foundParcel == null){
+                    if(foundParcel.isEmpty()){
                         System.out.println("Parcel not found");
                         break;
                     }
 
-                    double fee = manager.calculateShippingFee(foundParcel);
+                    Optional<Double> fee = manager.calculateShippingFee(foundParcel.get());
 
-                    if(fee == -1){
+                    if(fee.isEmpty()){
                         System.out.println("Invalid shipping type");
                     }
                     else {
-                        System.out.println("Shipping fee: " + fee);
+                        System.out.println("Shipping fee: " + fee.get());
                     }
+                    break;
+                }
+
+                case "11": {
+                    for(String sender : manager.getSenderNames()){
+                        System.out.println(sender);
+                    }
+                    break;
+                }
+
+                case "12": {
+                    if(manager.anyShippingParcel()){
+                        System.out.println("There is at least one shipping parcel");
+                    }
+                    else {
+                        System.out.println("There are no shipping parcels");
+                    }
+                    break;
+                }
+
+                case "13": {
+                    if(manager.areAllDelivered()){
+                        System.out.println("All parcels are delivered");
+                    }
+                    else {
+                        System.out.println("Not all parcels are delivered");
+                    }
+                    break;
+                }
+
+                case "14": {
+                    manager.sortByDefaultId();
+                    manager.showAllParcels();
+                    break;
+                }
+
+                case "15": {
+                    manager.sortByWeight();
+                    manager.showAllParcels();
                     break;
                 }
 

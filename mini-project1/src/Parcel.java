@@ -1,4 +1,4 @@
-public class Parcel {
+public class Parcel implements Comparable<Parcel> {
     private int id;
     private String sender;
     private String receiver;
@@ -82,7 +82,10 @@ public class Parcel {
                 + "Type of shipping: " + shippingType);
     }
 
-
+    @Override
+    public int compareTo(Parcel other) {
+        return Integer.compare(this.getId(), other.getId());
+    }
 
 
 }
