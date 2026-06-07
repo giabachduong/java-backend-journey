@@ -16,10 +16,15 @@ public class Main {
         return OptionalInt.of(id);
     }
     public static void main(String[] args) {
+
         String filepath = "mini-project1/src/test.txt";
         Scanner scanner = new Scanner(System.in);
-        ParcelManager manager = new ParcelManager();
-        manager.loadParcels(filepath);
+
+        ParcelRepository repository = new ParcelRepository();
+        ParcelFileStorage storage = new ParcelFileStorage(repository);
+        ParcelService service = new ParcelService(repository);
+
+        storage.loadParcels(filepath);
 
         menuLoop:
         while(true) {
@@ -45,7 +50,7 @@ public class Main {
 
             switch (choice) {
                 case "2":
-                    manager.showAllParcels();
+                    repository.showAllParcels();
                     break;
 
                 case "1":
@@ -55,20 +60,44 @@ public class Main {
                     }
                     int id = idInput.getAsInt();
 
-                    Optional<Parcel> existParcel = manager.findParcelById(id);
-
+                    Optional<Parcel> existParcel = repository.findParcelById(id);
                     if (existParcel.isPresent()) {
                         System.out.println("Id already exist");
                         break;
                     }
+                    System.out.print("Enter sender: ");
+                    String sender = scanner.nextLine();
 
-                    Optional<Parcel> newParcel = manager.createParcel(scanner, id);
-                    if(newParcel.isEmpty()){
+                    System.out.print("Enter receiver: ");
+                    String receiver = scanner.nextLine();
+
+                    System.out.print("Enter status: ");
+                    ParcelStatus status = ParcelStatus.fromInput(scanner.nextLine());
+                    if (status == null) {
+                        System.out.println("Invalid status");
                         break;
                     }
 
-                    manager.addParcel(newParcel.get());
-                    System.out.println("Parcel added");
+                    System.out.print("Enter weight: ");
+                    double weight;
+                    try {
+                        weight = Double.parseDouble(scanner.nextLine());
+                    } catch (NumberFormatException e) {
+                        System.out.println("Invalid weight");
+                        break;
+                    }
+
+                    System.out.print("Enter shipping type: ");
+                    String shippingType = scanner.nextLine();
+
+                    Parcel newParcel = new Parcel(id, sender, receiver, weight, status, shippingType);
+                    try {
+                        service.createParcel(newParcel);
+                        System.out.println("Parcel added");
+                    } catch (InvalidParcelException e) {
+                        System.out.println("Cannot add parcel: " + e.getMessage());
+                    }
+
                     break;
 
                 case "3": {
@@ -78,7 +107,7 @@ public class Main {
                     }
                     int searchId = searchIdInput.getAsInt();
 
-                    Optional<Parcel> foundParcel = manager.findParcelById(searchId);
+                    Optional<Parcel> foundParcel = repository.findParcelById(searchId);
 
                     if (foundParcel.isPresent()) {
                         foundParcel.get().displayInfo();
@@ -95,7 +124,7 @@ public class Main {
                     }
                     int searchId = searchIdInput.getAsInt();
 
-                    Optional<Parcel> foundParcel = manager.findParcelById(searchId);
+                    Optional<Parcel> foundParcel = repository.findParcelById(searchId);
 
                     if(foundParcel.isPresent()){
                         System.out.print("Enter the new status: ");
@@ -121,10 +150,10 @@ public class Main {
                     }
                     int searchId = searchIdInput.getAsInt();
 
-                    Optional<Parcel> foundParcel = manager.findParcelById(searchId);
+                    Optional<Parcel> foundParcel = repository.findParcelById(searchId);
 
                     if(foundParcel.isPresent()){
-                        manager.removeParcel(foundParcel.get());
+                        repository.removeParcel(foundParcel.get());
                         System.out.println("Parcel deleted");
                     }
                     else {
@@ -134,28 +163,28 @@ public class Main {
                 }
 
                 case "6": {
-                    long pendingCount = manager.countPendingParcels();
+                    long pendingCount = service.countPendingParcels();
                     System.out.println("The number of parcels is pending: " + pendingCount);
                     break;
                 }
 
                 case "7": {
-                    manager.sortByIdDescending();
-                    manager.getParcels().forEach(
+                    service.sortByIdDescending();
+                    repository.getParcels().forEach(
                             p -> p.displayInfo()
                     );
                     break;
                 }
 
                 case "8": {
-                    for(String sender : manager.getUniqueSenders()){
-                        System.out.println(sender);
+                    for(String sender1 : service.getUniqueSenders()){
+                        System.out.println(sender1);
                     }
                     break;
                 }
 
                 case "9": {
-                    manager.saveParcels(filepath);
+                    storage.saveParcels(filepath);
                     break;
                 }
 
@@ -166,14 +195,14 @@ public class Main {
                     }
                     int searchId = searchIdInput.getAsInt();
 
-                    Optional<Parcel> foundParcel = manager.findParcelById(searchId);
+                    Optional<Parcel> foundParcel = repository.findParcelById(searchId);
 
                     if(foundParcel.isEmpty()){
                         System.out.println("Parcel not found");
                         break;
                     }
 
-                    Optional<Double> fee = manager.calculateShippingFee(foundParcel.get());
+                    Optional<Double> fee = service.calculateShippingFee(foundParcel.get());
 
                     if(fee.isEmpty()){
                         System.out.println("Invalid shipping type");
@@ -185,14 +214,14 @@ public class Main {
                 }
 
                 case "11": {
-                    for(String sender : manager.getSenderNames()){
-                        System.out.println(sender);
+                    for(String sender2 : service.getSenderNames()){
+                        System.out.println(sender2);
                     }
                     break;
                 }
 
                 case "12": {
-                    if(manager.anyShippingParcel()){
+                    if(service.anyShippingParcel()){
                         System.out.println("There is at least one shipping parcel");
                     }
                     else {
@@ -202,7 +231,7 @@ public class Main {
                 }
 
                 case "13": {
-                    if(manager.areAllDelivered()){
+                    if(service.areAllDelivered()){
                         System.out.println("All parcels are delivered");
                     }
                     else {
@@ -212,19 +241,19 @@ public class Main {
                 }
 
                 case "14": {
-                    manager.sortByDefaultId();
-                    manager.showAllParcels();
+                    service.sortByDefaultId();
+                    repository.showAllParcels();
                     break;
                 }
 
                 case "15": {
-                    manager.sortByWeight();
-                    manager.showAllParcels();
+                    service.sortByWeight();
+                    repository.showAllParcels();
                     break;
                 }
 
                 case "0": {
-                    manager.saveParcels(filepath);
+                    storage.saveParcels(filepath);
                     break menuLoop;
                 }
 
